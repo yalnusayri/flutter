@@ -880,6 +880,13 @@ class _MaterialSwitchState extends State<_MaterialSwitch> with TickerProviderSta
       ?? switchTheme.trackColor?.resolve(inactiveStates)
       ?? defaults.trackColor!.resolve(inactiveStates)!;
     final Color? effectiveInactiveTrackOutlineColor = widget.trackOutlineColor?.resolve(inactiveStates)
+      ?? (applyCupertinoTheme
+        ? HSLColor
+          .fromColor(cupertinoPrimaryColor.withOpacity(0.80))
+          .withLightness(0.69).withSaturation(0.835)
+          .toColor()
+        : null
+      )
       ?? switchTheme.trackOutlineColor?.resolve(inactiveStates)
       ?? defaults.trackOutlineColor?.resolve(inactiveStates);
     final double? effectiveInactiveTrackOutlineWidth = widget.trackOutlineWidth?.resolve(inactiveStates)
@@ -1554,9 +1561,11 @@ class _SwitchPainter extends ToggleablePainter {
     canvas.drawRRect(trackRRect, paint);
 
     if (trackOutlineColor != null) {
-      final RRect outlineTrackRRect;
-      if (trackOutlineWidth == _kCupertinoFocusTrackOutline && isCupertino) {
-        outlineTrackRRect = trackRRect.inflate(1.75);
+      RRect? outlineTrackRRect;
+      if (isCupertino) {
+        if (isFocused) {
+          outlineTrackRRect = trackRRect.inflate(1.5);
+        }
       } else {
         // paint track outline
         final Rect outlineTrackRect = Rect.fromLTWH(
@@ -1574,7 +1583,10 @@ class _SwitchPainter extends ToggleablePainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = trackOutlineWidth ?? 2.0
         ..color = trackOutlineColor;
-      canvas.drawRRect(outlineTrackRRect, outlinePaint);
+
+      if (outlineTrackRRect != null) {
+        canvas.drawRRect(outlineTrackRRect, outlinePaint);
+      }
     }
     if (isCupertino) {
       canvas.clipRRect(trackRRect);
@@ -2063,7 +2075,7 @@ class _SwitchDefaultsCupertino extends SwitchThemeData {
   MaterialStateProperty<Color?> get overlayColor => const MaterialStatePropertyAll<Color>(Colors.transparent);
 
   @override
-  MaterialStateProperty<double> get trackOutlineWidth {
+  MaterialStateProperty<double?> get trackOutlineWidth {
     return MaterialStateProperty.resolveWith((Set<MaterialState> states) {
       if (states.contains(MaterialState.focused)) {
         return _kCupertinoFocusTrackOutline;
@@ -2120,13 +2132,13 @@ class _SwitchConfigCupertino with _SwitchConfig {
   }
 
   @override
-  double get activeThumbRadius => 13.5;
+  double get activeThumbRadius => 14.0;
 
   @override
-  double get inactiveThumbRadius => 13.5;
+  double get inactiveThumbRadius => 14.0;
 
   @override
-  double get pressedThumbRadius => 13.5;
+  double get pressedThumbRadius => 14.0;
 
   @override
   double get switchHeight => 39.0;
